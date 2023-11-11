@@ -57,7 +57,5 @@ def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[s
             hentai_ID_list.append(int(hentai_ID))
         except ValueError:                                                                  # if input invalid: discard that, keep rest
             logging.error(f"Converting input \"{hentai_ID}\" to int failed. Skipping ID.")
-            
-    hentai_ID_list=sorted(hentai_ID_list)                                                   # sort numerically
 
-    return hentai_ID_list
+    return sorted(hentai_ID_list)

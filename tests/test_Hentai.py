@@ -16,12 +16,12 @@ from src.Hentai import Hentai
 @hypothesis.settings(deadline=dt.timedelta(seconds=10))  # increase deadline for individual test because of web requests
 @hypothesis.given(hypothesis.strategies.integers())
 def test___init__(hentai_ID: int) -> None:
-    bypass_bot_protection: bool=True if 0.05<random.random() else False # randomly choose to not bypass bot protection sometimes
+    bypass_bot_protection: bool = random.random() > 0.05
     cookies: dict[str, str]={}                                          # for requests.get to bypass bot protection
     headers: dict[str, str]={}                                          # for requests.get to bypass bot protection
 
 
-    if bypass_bot_protection==True:
+    if bypass_bot_protection:
         with open("./cookies.json", "rt") as cookies_file:  # load cookies to bypass bot protection
             cookies=json.loads(cookies_file.read())
         with open("./headers.json", "rt") as headers_file:  # load headers to bypass bot protection
@@ -33,12 +33,12 @@ def test___init__(hentai_ID: int) -> None:
     except ValueError:                              # if input discarded as invalid: check if input really invalid
         # TODO how to check independently from the way used in __init__(...)?
         return
-    except requests.HTTPError:              # if failed to bypass bot protection:
-        assert bypass_bot_protection==False # check that bot protection was not supposed to be bypassed
+    except requests.HTTPError:          # if failed to bypass bot protection:
+        assert not bypass_bot_protection
         return
     else:
         assert 1<=hentai_ID                 # check that hentai ID has a chance to be valid
-        assert bypass_bot_protection==True  # check that bot protection was supposed to be bypassed
+        assert bypass_bot_protection
 
     assert isinstance(hentai._gallery, dict)                    # check that hentai._gallery is a dict
     assert "images" in hentai._gallery                          # check that hentai._gallery["images"] exists
@@ -59,7 +59,7 @@ def test___init__(hentai_ID: int) -> None:
     for fail in hentai._fails:                      # check that hentai._fails is a list initialised with 0
         assert isinstance(fail, int)                # check that hentai._fails is a list of ints
         assert fail==0
-    
+
     return
 
 

@@ -43,17 +43,17 @@ class Hentai:
         self.ID: int                # nhentai ID
         self.page_amount: int       # number of pages
         self.title: str             # title (unchanged)
-        
 
-        logging.debug(f"Creating hentai object...")
+
+        logging.debug("Creating hentai object...")
         self.ID=nhentai_ID
-        self._gallery=self._get_gallery(self.ID, cookies, headers)        
+        self._gallery=self._get_gallery(self.ID, cookies, headers)
         self.page_amount=int(self._gallery["num_pages"])
         self.title=self._gallery["title"]["pretty"]
         self._fails=[0 for _ in range(self.page_amount)]    # initialise with amount of pages number of zeros
-        logging.debug(f"Created hentai object.")
+        logging.debug("Created hentai object.")
         logging.debug(self.__repr__())
-        
+
         return
     
 
@@ -83,10 +83,10 @@ class Hentai:
         GALLERY_FILEPATH: str="./config/galleries.json"
         gallery_page: requests.Response
         NHENTAI_GALLERY_API_URL: str="https://nhentai.net/api/gallery"  # URL to nhentai API
-        
-        
+
+
         logging.info(f"Loading gallery {nhentai_ID}...")
-        if 0<len(cls.galleries):                                                                    # if class variable initialised: try to load from class variable
+        if len(cls.galleries) > 0:                                                                    # if class variable initialised: try to load from class variable
             gallery=next((gallery for gallery in cls.galleries if gallery["id"]==nhentai_ID), {})   # try to find gallery with same ID
             if gallery!={}:                                                                         # if gallery found: return
                 logging.info(f"\rLoaded gallery {nhentai_ID}.")
@@ -103,7 +103,7 @@ class Hentai:
             if gallery!={}:                                                                                 # if gallery found: return
                 logging.info(f"\rLoaded gallery {nhentai_ID} from \"{GALLERY_FILEPATH}\".")
                 return gallery
-        
+
 
         attempt_no: int=1
         while True:
@@ -121,7 +121,7 @@ class Hentai:
             if gallery_page.status_code==404:                               # if status code 404 (not found): hentai does not exist (anymore?)
                 logging.error(f"Hentai with ID \"{nhentai_ID}\" does not exist.")
                 raise ValueError(f"Error in {Hentai._get_gallery.__name__}{inspect.signature(Hentai._get_gallery)}: Hentai with ID \"{nhentai_ID}\" does not exist.")
-            if gallery_page.ok==False:                                      # if status code not ok: try again
+            if not gallery_page.ok:                                      # if status code not ok: try again
                 time.sleep(1)
                 if attempt_no<3:                                            # try 3 times
                     continue
@@ -157,12 +157,12 @@ class Hentai:
         re_match: re.Match|None
 
 
-        for image in image_list:                                                        # for each image:
-            for pattern in PATTERNS:                                                    # with each pattern:
+        for image in image_list:                                                    # for each image:
+            for pattern in PATTERNS:                                            # with each pattern:
                 re_match=re.search(pattern, image.split("/")[-1])                       # try to parse page number, use only filename not path
-                if re_match!=None:                                                      # if page number could be parsed:
+                if re_match!=None:                                          # if page number could be parsed:
                     self._fails[int(re_match.groupdict()["page_no"])-1]+=1              # increment appropiate fails counter
-                    if 10<=self._fails[int(re_match.groupdict()["page_no"])-1]:         # if any counter 10 or above:
+                    if self._fails[int(re_match.groupdict()["page_no"]) - 1] >= 10:         # if any counter 10 or above:
                         self._give_up=True                                              # give hentai up
                     break
             else:                                                                       # if page number can't be parsed:
